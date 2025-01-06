@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Query Results</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #333;
+            color: white;
+        }
+        .pagination {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+        }
+        .pagination a {
+            margin: 0 5px;
+            padding: 10px 15px;
+            text-decoration: none;
+            background-color: #f2f2f2;
+            border: 1px solid #ddd;
+            color: #333;
+        }
+        .pagination a.active {
+            background-color: #4caf50;
+            color: white;
+        }
+        .pagination a:hover {
+            background-color: #ddd;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+    <script>
+        // Function to fetch and display table data dynamically
+        function updateTableData(tableName, pageNumber, recordsPerPage) {
+            const url = `/get_table_data/?table_name=${tableName}&page_number=${pageNumber}&records_per_page=${recordsPerPage}`;
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Failed to fetch table data");
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Update the table's HTML content
+                    const tableDiv = document.getElementById(`${tableName}_table`);
+                    if (tableDiv) {
+                        tableDiv.innerHTML = data.table_html;
+                    }
+
+                    // Update pagination links
+                    updatePaginationLinks(tableName, pageNumber, data.total_pages, recordsPerPage);
+                })
+                .catch(error => {
+                    console.error('Error fetching table data:', error);
+                    const errorDiv = document.getElementById(`${tableName}_error`);
+                    if (errorDiv) {
+                        errorDiv.textContent = "Error loading data. Please try again.";
+                    }
+                });
+        }
+
+        // Function to dynamically update pagination links
+        function updatePaginationLinks(tableName, currentPage, totalPages, recordsPerPage) {
+            const paginationDiv = document.getElementById(`${tableName}_pagination`);
+            if (!paginationDiv) return;
+
+            paginationDiv.innerHTML = ""; // Clear existing pagination
+
+            // Add "Previous" link
+            if (currentPage > 1) {
+                paginationDiv.innerHTML += `<a href="javascript:void(0);" onclick="updateTableData('${tableName}', ${currentPage - 1}, ${recordsPerPage})">Previous</a>`;
+            }
+
+            // Add page numbers
+            for (let page = 1; page <= totalPages; page++) {
+                paginationDiv.innerHTML += `<a href="javascript:void(0);" onclick="updateTableData('${tableName}', ${page}, ${recordsPerPage})" class="${page === currentPage ? 'active' : ''}">${page}</a>`;
+            }
+
+            // Add "Next" link
+            if (currentPage < totalPages) {
+                paginationDiv.innerHTML += `<a href="javascript:void(0);" onclick="updateTableData('${tableName}', ${currentPage + 1}, ${recordsPerPage})">Next</a>`;
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Query Results</h1>
+    <p><strong>Generated Query:</strong> {{ query }}</p>
+    <h2>Tables:</h2>
+
+    {% for table in tables %}
+        <h3>{{ table.table_name }}</h3>
+
+        <div id="{{ table.table_name }}_table">
+            {{ table.table_html | safe }}
+        </div>
+
+        <div id="{{ table.table_name }}_pagination" class="pagination">
+            {% set current_page = table.pagination.current_page %}
+            {% set total_pages = table.pagination.total_pages %}
+            {% set records_per_page = table.pagination.records_per_page %}
+
+            {% if current_page > 1 %}
+                <a href="javascript:void(0);" onclick="updateTableData('{{ table.table_name }}', {{ current_page - 1 }}, {{ records_per_page }})">Previous</a>
+            {% endif %}
+
+            {% for page in range(1, total_pages + 1) %}
+                <a href="javascript:void(0);" onclick="updateTableData('{{ table.table_name }}', {{ page }}, {{ records_per_page }})" 
+                   class="{% if page == current_page %}active{% endif %}">{{ page }}</a>
+            {% endfor %}
+
+            {% if current_page < total_pages %}
+                <a href="javascript:void(0);" onclick="updateTableData('{{ table.table_name }}', {{ current_page + 1 }}, {{ records_per_page }})">Next</a>
+            {% endif %}
+        </div>
+
+        <div id="{{ table.table_name }}_error" class="error"></div>
+    {% endfor %}
+</body>
+</html>
