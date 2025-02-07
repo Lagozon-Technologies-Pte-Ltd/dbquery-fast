@@ -15,9 +15,9 @@ from typing import List
 def get_table_details(selected_subject = 'HR'):
     # Read the CSV file into a DataFrame
     select_database_table_desc_csv = selected_subject + ".csv"
-    path = f'table_files/{select_database_table_desc_csv}'
+    
     # table_description = pd.read_csv("database_table_descriptions.csv")
-    table_description = pd.read_csv(path)
+    table_description = pd.read_csv(select_database_table_desc_csv)
     print("Selected Table description csv is ....." , select_database_table_desc_csv)
     table_docs = []
 

@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DBQuery: Generative AI Assistant to your Database</title>
-    <link rel="stylesheet" href="static/styles.css">
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const userSection = document.getElementById("user-section");
@@ -31,7 +30,7 @@
         });
         async function fetchTables(selectedSection) {
             const tableDropdown = document.getElementById("table-dropdown");
-            tableDropdown.innerHTML = '<option value="">List Of Tables</option>'; // Clear existing options
+            tableDropdown.innerHTML = '<option value="">Select Table</option>'; // Clear existing options
             if (selectedSection) {
                 try {
                     const response = await fetch(`/get-tables/?selected_section=${selectedSection}`);
@@ -217,9 +216,6 @@
                     }
                 });
         }
-        function clearQuery() {
-            document.getElementById("user_query").value = ""; // Clears the input field
-        }
 
         // Function to dynamically update pagination links
         function updatePaginationLinks(tableName, currentPage, totalPages, recordsPerPage) {
@@ -228,152 +224,91 @@
 
             paginationDiv.innerHTML = ""; // Clear existing pagination
 
-            const paginationList = document.createElement("ul");
-            paginationList.className = "pagination"; // Add a class for styling
-
-            // Previous Button
-            const prevLi = document.createElement("li");
-            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
-            prevLi.innerHTML = `<a href="javascript:void(0);" onclick="updateTableData('${tableName}', ${currentPage - 1}, ${recordsPerPage})" class="page-link">« Prev</a>`;
-            paginationList.appendChild(prevLi);
-
-            // Page Numbers (Limiting pages displayed)
-            const maxPagesToShow = 5;
-            let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
-            let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
-
-            if (endPage - startPage + 1 < maxPagesToShow) {
-                startPage = Math.max(1, endPage - maxPagesToShow + 1);
+            // Add "Previous" link
+            if (currentPage > 1) {
+                paginationDiv.innerHTML += `<a href="javascript:void(0);" onclick="updateTableData('${tableName}', ${currentPage - 1}, ${recordsPerPage})">Previous</a>`;
             }
 
-            for (let page = startPage; page <= endPage; page++) {
-                const pageLi = document.createElement("li");
-                pageLi.className = `page-item ${page === currentPage ? 'active' : ''}`;
-                pageLi.innerHTML = `<a href="javascript:void(0);" onclick="updateTableData('${tableName}', ${page}, ${recordsPerPage})" class="page-link">${page}</a>`;
-                paginationList.appendChild(pageLi);
+            // Add page numbers
+            for (let page = 1; page <= totalPages; page++) {
+                paginationDiv.innerHTML += `<a href="javascript:void(0);" onclick="updateTableData('${tableName}', ${page}, ${recordsPerPage})" class="${page === currentPage ? 'active' : ''}">${page}</a>`;
             }
 
-            // Next Button
-            const nextLi = document.createElement("li");
-            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
-            nextLi.innerHTML = `<a href="javascript:void(0);" onclick="updateTableData('${tableName}', ${currentPage + 1}, ${recordsPerPage})" class="page-link">Next »</a>`;
-            paginationList.appendChild(nextLi);
-
-            paginationDiv.appendChild(paginationList);
+            // Add "Next" link
+            if (currentPage < totalPages) {
+                paginationDiv.innerHTML += `<a href="javascript:void(0);" onclick="updateTableData('${tableName}', ${currentPage + 1}, ${recordsPerPage})">Next</a>`;
+            }
         }
-        async function connectDatabase() {
-            const database = document.getElementById("database-dropdown").value;
-            const model = document.getElementById("model-dropdown").value;
-            const connectionMessage = document.getElementById("connection-message");
-
-            if (!database || database === "Select Database") {
-                alert("Please select a database.");
-                return;
-            }
-            if (!model || model === "Select Model") {
-                alert("Please select a model.");
-                return;
-            }
-
-
-
-
-
-            connectionMessage.style.display = "block";
-            connectionMessage.textContent = "✅ Connection Successful!";
-
-
-        }
-
     </script>
 </head>
 
 <body>
-    <header>
-        <img src="static/logo.png" alt="DBQuery Logo" class="logo">
-        <h1>DBQuery: Generative AI Assistant to your Database</h1>
-    </header>
-    <main>
-        <form action="/submit" method="post" onsubmit="handleSubmit(event)">
-            <!-- Role Selection -->
-            <h2>Select Role:</h2>
-            <label><input type="radio" name="role" value="admin" required> Admin</label><br>
-            <label><input type="radio" name="role" value="user" required> User</label><br>
+    <h1>DBQuery: Generative AI Assistant to your Database</h1>
+    <form action="/submit" method="post" onsubmit="handleSubmit(event)">
+        <!-- Role Selection -->
+        <h2>Select Role:</h2>
+        <label><input type="radio" name="role" value="admin" required> Admin</label><br>
+        <label><input type="radio" name="role" value="user" required> User</label><br>
 
-            <!--Admin Section (hidden by default) -->
-            <div id="admin-section" style="display: none; margin-top: 20px;">
-                <h2>Select Database:</h2>
-                <select name="database" id="database-dropdown" required>
-                    <option value="PostgreSQL">Select Database</option>
-                    {% for db in databases %}
+        <!--Admin Section (hidden by default) -->
+        <div id="admin-section" style="display: none; margin-top: 20px;">
+            <h2>Select Database:</h2>
+            <select name="database" id="database-dropdown" required>
+                <option value="PostgreSQL" >Select Database</option>
+                {% for db in databases %}
                     <option value="{{ db }}">{{ db }}</option>
-                    {% endfor %}
-                </select>
-
-                <h2>Select Model:</h2>
-                <select name="model" id="model-dropdown" required>
-                    <option value="gpt-3.5-turbo">Select Model</option>
-                    {% for model in models %}
+                {% endfor %}
+            </select>
+            
+            <h2>Select Model:</h2>
+            <select name="model" id="model-dropdown" required>
+                <option value="gpt-3.5-turbo" >Select Model</option>
+                {% for model in models %}
                     <option value="{{ model }}">{{ model }}</option>
-                    {% endfor %}
-                </select>
-
-                <!-- Connect Button -->
-                <button type="button" onclick="connectDatabase()">Connect</button>
-
-                <!-- Success Message (Initially Hidden) -->
-                <p id="connection-message" style="display: none; color: green; font-weight: bold; margin-top: 10px;">
-                </p>
-
-            </div>
-            <!-- User Section (hidden by default) -->
-            <div id="user-section" style="display: none; margin-top: 20px;">
-                <h2>Select Section:</h2>
-                <select name="section" id="section-dropdown" onchange="onSectionChange()" required>
-                    <option value="" disabled selected>Select Section</option>
-                    {% for sec in section %}
-                    <option value="{{ sec }}">{{ sec }}</option>
-                    {% endfor %}
-                </select>
-
-                <h2>Relevant Tables:</h2>
-                <select name="table" id="table-dropdown">
-                    <option value="" disabled selected>List of Tables</option> <!-- Dynamically populated -->
-                </select>
-
-                <h2>Select Example Question:</h2>
-                <div style="display: flex; align-items: center;">
-                    <select name="example_question" id="questions-dropdown">
-                        <option value="" disabled selected>Select a Question</option> <!-- Dynamically populated -->
-                    </select>
-                    <button type="button" onclick="chooseExampleQuestion()" style="margin-left: 10px;">Choose</button>
-                </div>
-
-                <p id="selected-question-display" style="margin-top: 10px; color: blue;"></p>
-
-
-                <h2>Your Query:</h2>
-                <div style="display: flex; align-items: center; width: 100%;">
-                    <input type="text" id="user_query" name="user_query" placeholder="Enter your query here..." required
-                        style="flex: 1; box-sizing: border-box; padding: 8px; font-size: 16px;">
-                    <button type="button" onclick="clearQuery()" style="margin-left: 10px;">Clear</button>
-                </div>
-
-                <!-- Hidden field for the prompt -->
-                <input type="hidden" id="prompt" name="prompt">
-
-                <button type="submit" style="margin-top: 20px;">Submit</button>
-            </div>
-        </form>
-        <div id="query-results" style="display: none;">
-            <h1>Query Details</h1>
-            <p id="user_query_display"><strong>Query Asked:</strong> <span></span></p>
-            <p id="sql_query_display"><strong>SQL Query:</strong> <span></span></p>
-            <div id="tables_container">
-                <div class="pagination"></div>
-            </div>
+                {% endfor %}
+            </select>
         </div>
-    </main>
+
+        <!-- User Section (hidden by default) -->
+        <div id="user-section" style="display: none; margin-top: 20px;">
+            <h2>Select Section:</h2>
+            <select name="section" id="section-dropdown" onchange="onSectionChange()" required>
+                <option value="" disabled selected>Select Section</option>
+                {% for sec in section %}
+                <option value="{{ sec }}">{{ sec }}</option>
+                {% endfor %}
+            </select>
+
+            <h2>Select Table:</h2>
+            <select name="table" id="table-dropdown" >
+                <option value="" disabled selected>Select Table</option> <!-- Dynamically populated -->
+            </select>
+
+            <h2>Select Example Question:</h2>
+            <div style="display: flex; align-items: center;">
+                <select name="example_question" id="questions-dropdown" required>
+                    <option value="" disabled selected>Select a Question</option> <!-- Dynamically populated -->
+                </select>
+                <button type="button" onclick="chooseExampleQuestion()" style="margin-left: 10px;">Choose</button>
+            </div>
+
+            <p id="selected-question-display" style="margin-top: 10px; color: blue;"></p>
+
+            <h2>Your Query:</h2>
+            <input type="text" id="user_query" name="user_query" placeholder="Enter your query here..." required>
+
+            <!-- Hidden field for the prompt -->
+            <input type="hidden" id="prompt" name="prompt">
+
+            <button type="submit" style="margin-top: 20px;">Submit</button>
+        </div>
+    </form>
+    <div id="query-results" style="display: none;">
+        <h1>Query Results</h1>
+        <h2>chatbox</h2>
+        <p id="user_query_display"><strong>Query Asked:</strong></p>
+        <p id="sql_query_display"><strong>SQL Query:</strong></p>
+        <div id="tables_container"></div>    </div>
 </body>
 
 </html>
