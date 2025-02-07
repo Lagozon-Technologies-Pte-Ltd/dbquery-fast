@@ -1,0 +1,8 @@
+Question,
+Retrieve 10 business entities with their email and phone number details,
+List atmost 10 business entities that do not have an associated email address,
+Count the number of times each country or region appears across all addresses,
+Find the top 5 most frequently used contact types across all business entities,
+Count the number of unique phone number types associated with each business entity.
+Retrieve atmost 10 customers who have the same email address across multiple accounts,
+Retrieve atmost 10 addresses where the postal code starts with a specific number,
