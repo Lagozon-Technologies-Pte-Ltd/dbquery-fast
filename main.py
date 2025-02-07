@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Form, HTTPException,Query
 from fastapi.responses import HTMLResponse
-# from fastapi.staticfiles import StaticFiles
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.requests import Request
 from fastapi.responses import JSONResponse
@@ -17,7 +17,7 @@ from typing import Optional
 app = FastAPI()
 
 # Set up static files and templates
-# app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 # Initialize OpenAI API key and model
@@ -45,7 +45,7 @@ async def read_root(request: Request):
         "request": request,
         "models": models,
         "databases": databases,  # Dynamically populated database dropdown
-        "section": subject_areas2,
+        "section": subject_areas1,
         "tables": tables,        # Table dropdown based on database selection
         "question_dropdown": question_dropdown.split(','),  # Static questions from env
     })
