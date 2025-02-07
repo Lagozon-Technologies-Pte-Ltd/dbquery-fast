@@ -53,7 +53,7 @@ async def read_root(request: Request):
 @app.get("/get_questions/")
 async def get_questions(subject: str):
     """Fetch questions from the selected subject's CSV file."""
-    csv_file = f"{subject}_questions.csv"
+    csv_file = f"table_files/{subject}_questions.csv"
     if not os.path.exists(csv_file):
         return JSONResponse(
             content={"error": f"The file `{csv_file}` does not exist."}, status_code=404
