@@ -4,6 +4,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from starlette.requests import Request
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 import os
 import pandas as pd
 from langchain.chains.openai_tools import create_extraction_chain_pydantic 
@@ -19,6 +20,7 @@ app = FastAPI()
 # Set up static files and templates
 # app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Initialize OpenAI API key and model
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
@@ -45,7 +47,7 @@ async def read_root(request: Request):
         "request": request,
         "models": models,
         "databases": databases,  # Dynamically populated database dropdown
-        "section": subject_areas2,
+        "section": subject_areas1,
         "tables": tables,        # Table dropdown based on database selection
         "question_dropdown": question_dropdown.split(','),  # Static questions from env
     })
@@ -53,7 +55,7 @@ async def read_root(request: Request):
 @app.get("/get_questions/")
 async def get_questions(subject: str):
     """Fetch questions from the selected subject's CSV file."""
-    csv_file = f"{subject}_questions.csv"
+    csv_file = f"table_files/{subject}_questions.csv"
     if not os.path.exists(csv_file):
         return JSONResponse(
             content={"error": f"The file `{csv_file}` does not exist."}, status_code=404
