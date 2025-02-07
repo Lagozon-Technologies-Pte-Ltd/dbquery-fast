@@ -33,6 +33,65 @@ from table_details import get_table_details  # Importing the function
 class Table(BaseModel):
     """Table in SQL database."""
     name: str = Field(description="Name of table in SQL database.")
+# Function to create and return gauge chart data as JSON
+def create_gauge_chart_json(title, value, min_val=0, max_val=100, color="blue", subtext="%"):
+    fig = go.Figure(go.Indicator(
+        mode="gauge+number",
+        value=value,
+        title={'text': title, 'font': {'size': 18, 'color': 'black'}},
+            gauge={
+            'axis': {'range': [min_val, max_val], 'tickwidth': 1, 'tickcolor': "darkblue"},
+            'bar': {'color': color, 'thickness': 1},
+            'bgcolor': "white",
+            'borderwidth': 0.7,
+            'bordercolor': "black",
+            
+            'threshold': {
+                'line': {'color': color, 'width': 4},
+                'thickness': 0.75,
+                'value': value
+            }
+        },
+        number={'suffix': subtext, 'font': {'size': 16, 'color': 'gray'}}
+    ))
+
+ #  # Adjust the layout to prevent cropping
+    fig.update_layout(
+        width=350,  # Increased width
+        height=350,  # Increased height
+        margin=dict(
+            t=50,  # Top margin
+            b=50,  # Bottom margin
+            l=50,  # Left margin
+            r=50   # Right margin
+        )
+    
+    )
+    return fig.to_json()  # Return JSON instead of an image
+
+# Define Evaluation Metrics
+gauge_config = {
+    "Faithfulness": {"value": 95, "color": "green"},
+    "Relevancy": {"value": 82, "color": "lightgreen"},
+    "Precision": {"value": 80, "color": "yellow"},
+    "Recall": {"value": 78, "color": "orange"},
+    "Harmfulness": {"value": 15, "color": "red"}
+}
+
+@app.get("/evaluation-matrix/")
+async def get_evaluation_matrix():
+    """Generate evaluation metric gauge charts as JSON."""
+    try:
+        print("Fetching Evaluation Metrics...")  # Debugging log
+        evaluation_charts = {
+            metric: create_gauge_chart_json(metric, **config)
+            for metric, config in gauge_config.items()
+        }
+        return JSONResponse(content=evaluation_charts)
+
+    except Exception as e:
+        print(f"Error generating evaluation matrix: {e}")  # Print error
+        return JSONResponse(content={"error": str(e)}, status_code=500)
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
