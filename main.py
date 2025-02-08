@@ -1,10 +1,9 @@
 from fastapi import FastAPI, Form, HTTPException,Query
 from fastapi.responses import HTMLResponse
-# from fastapi.staticfiles import StaticFiles
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.requests import Request
 from fastapi.responses import JSONResponse
-from fastapi.staticfiles import StaticFiles
 import plotly.graph_objects as go
 import plotly.express as px
 import base64
@@ -22,9 +21,8 @@ from typing import Optional
 app = FastAPI()
 
 # Set up static files and templates
-# app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
 
 # Initialize OpenAI API key and model
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
@@ -39,7 +37,6 @@ from table_details import get_table_details  # Importing the function
 class Table(BaseModel):
     """Table in SQL database."""
     name: str = Field(description="Name of table in SQL database.")
-
 # Function to create and return gauge chart data as JSON
 def create_gauge_chart_json(title, value, min_val=0, max_val=100, color="blue", subtext="%"):
     fig = go.Figure(go.Indicator(
@@ -99,6 +96,7 @@ async def get_evaluation_matrix():
     except Exception as e:
         print(f"Error generating evaluation matrix: {e}")  # Print error
         return JSONResponse(content={"error": str(e)}, status_code=500)
+
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
 
