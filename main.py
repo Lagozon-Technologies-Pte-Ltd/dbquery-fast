@@ -4,6 +4,10 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.requests import Request
 from fastapi.responses import JSONResponse
+import plotly.graph_objects as go
+import plotly.express as px
+import base64
+from io import BytesIO
 import os
 import pandas as pd
 from langchain.chains.openai_tools import create_extraction_chain_pydantic 
